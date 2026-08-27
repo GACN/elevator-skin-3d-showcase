@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>中梦·电梯皮肤 3D展厅 — 活力橙 Material 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#FF6B35;--orange-soft:#FFF1EB;--orange-container:#FFDBCC;
+  --surface:#FFFBFF;--surface-container:#F3EFEF;--outline-variant:#D8C2B8;
+  --on-surface:#1F1A18;--on-surface-variant:#50433E;
+  --radius-xl:28px;--radius-lg:20px;--radius-md:16px;
+}
+body{font-family:'Google Sans','Noto Sans SC',system-ui,sans-serif;background:#FFF8F6;color:var(--on-surface);overflow-x:hidden}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,251,255,0.88);backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--outline-variant);display:flex;align-items:center;justify-content:space-between;padding:10px 18px;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:14px;background:var(--orange);display:grid;place-items:center;color:#fff;font-weight:900;font-size:18px;box-shadow:0 4px 16px rgba(255,107,53,0.35)}
+.brand h1{font-size:18px;font-weight:800;letter-spacing:-0.3px;line-height:1}
+.brand p{font-size:11px;color:var(--on-surface-variant);letter-spacing:0.4px;margin-top:2px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.m3-btn{border:1px solid var(--outline-variant);background:#fff;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.2s}
+.m3-btn.filled{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 4px 12px rgba(255,107,53,0.3)}
+.shell{max-width:1440px;margin:0 auto;padding:16px;display:grid;grid-template-columns:320px 1fr 300px;gap:16px}
+@media(max-width:1100px){.shell{grid-template-columns:1fr;}.side-right{order:3}.stage-wrap{order:1}.side-left{order:2}}
+.card{background:var(--surface);border:1px solid var(--outline-variant);border-radius:20px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 8px 24px rgba(80,40,20,0.06)}
+.card-head{padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F0E6E1}
+.card-head h2{font-size:13px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:var(--on-surface-variant)}
+.card-body{padding:14px 16px}
+.chips{display:flex;flex-direction:column;gap:10px}
+.chip{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;border:1.5px solid var(--outline-variant);background:#fff;cursor:pointer;transition:0.2s;text-align:left;width:100%}
+.chip.active{border-color:var(--orange);background:var(--orange-soft);box-shadow:0 4px 16px rgba(255,107,53,0.18)}
+.chip-thumb{width:54px;height:72px;border-radius:10px;overflow:hidden;flex:0 0 54px;background:#eee;border:1px solid #eee}
+.chip-thumb img{width:100%;height:100%;object-fit:cover}
+.chip-main{flex:1;min-width:0}
+.chip-title{font-size:13px;font-weight:800;line-height:1.2}
+.chip-sub{font-size:11px;color:var(--on-surface-variant);margin-top:2px}
+.chip-meta{font-size:10px;color:#fff;background:var(--orange);padding:2px 7px;border-radius:999px;font-weight:700}
+.divider{height:1px;background:var(--outline-variant);margin:12px 0}
+.control-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}
+.control-label{font-size:12px;font-weight:700;color:var(--on-surface-variant)}
+.segmented{display:flex;background:var(--surface-container);border-radius:999px;padding:3px;gap:3px}
+.seg{padding:7px 10px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--on-surface-variant);transition:0.2s;white-space:nowrap}
+.seg.active{background:var(--orange);color:#fff;box-shadow:0 2px 8px rgba(255,107,53,0.3)}
+.slider{width:100%;accent-color:var(--orange)}
+.switch{width:42px;height:26px;background:#E8DDD8;border-radius:999px;position:relative;cursor:pointer;transition:0.2s;border:1px solid var(--outline-variant);flex:0 0 42px}
+.switch.on{background:var(--orange);border-color:var(--orange)}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.switch.on i{transform:translateX(16px)}
+.mini{font-size:11px;color:var(--on-surface-variant);line-height:1.5}
+
+/* STAGE */
+.stage-wrap{display:flex;flex-direction:column;gap:12px}
+.stage{position:relative;height:640px;background:radial-gradient(1200px 600px at 50% -10%, #FFEDE3 0%, transparent 60%),linear-gradient(180deg, #FFFBFF 0%, #FFF1EB 100%);border-radius:28px;border:1px solid var(--outline-variant);overflow:hidden;display:grid;place-items:center}
+@media(max-width:700px){.stage{height:560px}}
+.scene{width:100%;height:100%;display:grid;place-items:center;perspective:1100px;perspective-origin:50% 38%;cursor:grab;user-select:none}
+.scene:active{cursor:grabbing}
+.elevator{position:relative;width:320px;height:490px;transform-style:preserve-3d;transform:rotateY(-22deg) rotateX(7deg);transition:transform 0.6s cubic-bezier(0.2,0.8,0.2,1)}
+.elevator.dragging{transition:none}
+
+/* faces – precise to spec */
+.face{position:absolute;overflow:hidden;backface-visibility:hidden;border:1px solid rgba(0,0,0,0.06);background:#fff}
+.face img.tex{width:100%;height:100%;object-fit:cover;display:block}
+/* back = 中 160×245 */
+.face.back{width:320px;height:490px;transform:translateZ(-150px);background:#f7f2ef}
+/* side walls = 左 150×245 / 右 150×245 – depth 300 */
+.face.left{width:300px;height:490px;transform:rotateY(90deg) translateZ(-160px) translateX(-0px);transform-origin:center;background:#faf6f3}
+.face.right{width:300px;height:490px;transform:rotateY(-90deg) translateZ(-160px);background:#faf6f3}
+/* floor / ceiling – hidden per request (对不齐就去掉，避免悬空错位) */
+.face.floor{display:none}
+.face.ceiling{width:320px;height:300px;background:#ECE6E4;transform:rotateX(90deg) translateZ(245px);border:none;display:none}
+.face.ceiling img{width:100%;height:100%;object-fit:cover;opacity:0.98}
+
+/* front assembly – sits at z = +150 */
+.front{position:absolute;width:320px;height:490px;transform:translateZ(150px);transform-style:preserve-3d;pointer-events:none}
+.jamb{position:absolute;top:0;width:70px;height:490px;background:#F5F0EB;border:1px solid rgba(0,0,0,0.08);overflow:hidden}
+.jamb img{width:100%;height:100%;object-fit:cover;display:block}
+.jamb.left{left:0}
+.jamb.right{right:0}
+.header{position:absolute;top:0;left:70px;right:70px;height:70px;background:#F5F0EB;border:1px solid rgba(0,0,0,0.06);overflow:hidden}
+.header img{width:100%;height:100%;object-fit:cover;display:block}
+/* door frame border */
+.frame-line{position:absolute;inset:0;border:3px solid #1E1E1E;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),0 10px 30px rgba(0,0,0,0.18);pointer-events:none}
+.frame-line::before{content:'ZOMER · 中梦集团';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:800;color:#3a2a22;background:#FFDBCC;padding:2px 8px;border-radius:999px;border:1px solid #FFB68A;white-space:nowrap}
+
+/* inner doors – inside cabin, 90×210 -> 180×420 px, sit inside front opening (70px jambs leave 180px door width) */
+.inner-doors{position:absolute;left:70px;right:70px;top:70px;bottom:0;display:flex;pointer-events:none;overflow:hidden;background:#F2EEEA;transition:opacity 0.25s}
+.inner-doors .leaf{flex:1;overflow:hidden;transition:transform 0.7s cubic-bezier(0.4,0,0.2,1);background:#F2EEEA;border:1px solid rgba(0,0,0,0.07)}
+.inner-doors .leaf img{width:200%;height:100%;object-fit:cover;display:block;transition:opacity 0.2s}
+.inner-doors .leaf.left img{object-position:left center}
+.inner-doors .leaf.right img{object-position:right center}
+.inner-doors .leaf.left{border-right:1px solid rgba(0,0,0,0.12)}
+.inner-doors .leaf.right{border-left:1px solid rgba(0,0,0,0.12)}
+.elevator.doors-closed .inner-doors .leaf.left{transform:translateX(0)}
+.elevator.doors-closed .inner-doors .leaf.right{transform:translateX(0)}
+.elevator.doors-open .inner-doors .leaf.left{transform:translateX(-102%)}
+.elevator.doors-open .inner-doors .leaf.right{transform:translateX(102%)}
+
+/* outer doors – hallway side, slightly in front of inner, visible when exterior */
+.outer-doors{position:absolute;left:30px;right:30px;top:34px;bottom:36px;display:flex;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 0.25s, transform 0.25s;transform:translateZ(1px);background:#EEE8E4;border:2px solid #1A1A1A;box-shadow:0 8px 24px rgba(0,0,0,0.18)}
+.outer-doors .leaf{flex:1;overflow:hidden;background:#F2EEEA}
+.outer-doors .leaf img{width:200%;height:100%;object-fit:cover;display:block}
+.outer-doors .leaf.left img{object-position:left center}
+.outer-doors .leaf.right img{object-position:right center}
+.elevator.mode-exterior .outer-doors{opacity:1}
+.elevator.mode-exterior.mode-doors-open .outer-doors .leaf.left{transform:translateX(-102%)}
+.elevator.mode-exterior.mode-doors-open .outer-doors .leaf.right{transform:translateX(102%)}
+.elevator.mode-exterior .outer-doors .leaf{transition:transform 0.7s cubic-bezier(0.4,0,0.2,1)}
+
+/* hallway walls for exterior view – pure gray, no texture per spec */
+.hall{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 0.25s}
+.elevator.mode-exterior .hall{opacity:1}
+.hall-wall{position:absolute;top:0;bottom:0;width:110px;background:#E8E6E8;border:1px solid rgba(0,0,0,0.06);overflow:hidden}
+.hall-wall.left{left:0;transform:translateZ(42px)}
+.hall-wall.right{right:0;transform:translateZ(42px)}
+/* exterior: jamb/header plain gray, interior: keep pattern */
+.elevator.mode-exterior:not(.mode-both) .jamb img,
+.elevator.mode-exterior:not(.mode-both) .header img{opacity:0;pointer-events:none}
+.elevator.mode-exterior:not(.mode-both) .jamb,
+.elevator.mode-exterior:not(.mode-both) .header{background:#E0E0E0;border-color:rgba(0,0,0,0.06)}
+.elevator.mode-exterior:not(.mode-both) .btn-panel,
+.elevator.mode-exterior:not(.mode-both) .notice{opacity:0}
+.elevator.mode-exterior:not(.mode-both) .inner-doors{opacity:0}
+.elevator.mode-exterior:not(.mode-both) .outer-doors .leaf img{opacity:1}
+/* interior/both: ensure jamb/header show pattern */
+.elevator:not(.mode-exterior) .jamb img,
+.elevator.mode-both .jamb img,
+.elevator:not(.mode-exterior) .header img,
+.elevator.mode-both .header img{opacity:1}
+
+/* button panel – on gray jamb (follows gray texture) */
+.btn-panel{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:176px;background:linear-gradient(180deg,#E8E0DB 0%,#CFC6C1 100%);border-radius:12px;border:1px solid #B8ADA8;box-shadow:0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.7);display:flex;flex-direction:column;align-items:center;padding:8px 6px;gap:5px;pointer-events:none}
+.jamb.right .btn-panel{right:6px;left:auto}
+.jamb.left .btn-panel{left:6px;right:auto}
+.btn-panel .led{width:28px;height:14px;background:#111;border-radius:5px;color:#FF3B30;font-size:9px;font-weight:900;display:grid;place-items:center;letter-spacing:1px;box-shadow:inset 0 0 5px rgba(255,59,48,0.6)}
+.btn-panel .btn{width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#fff 0%,#E9E2DE 100%);border:1px solid #B0A6A2;display:grid;place-items:center;font-size:10px;font-weight:800;color:#3a2a22;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+.btn-panel .btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.notice{position:absolute;top:56%;width:84px;height:118px;background:#fff;border-radius:4px;border:1px solid #D8C2B8;box-shadow:0 4px 14px rgba(0,0,0,0.14);padding:6px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
+.jamb.right .notice{right:58px;left:auto}
+.jamb.left .notice{left:58px;right:auto}
+.notice h4{font-size:7px;font-weight:900;letter-spacing:0.7px;color:var(--orange);border-bottom:1px solid #FFE0D0;padding-bottom:3px}
+.notice p{font-size:6px;line-height:1.35;color:#4a3f3b}
+.notice .qr{margin-top:auto;height:30px;background:repeating-linear-gradient(90deg,#111 0 2px,#fff 2px 4px);opacity:0.12;border-radius:2px}
+
+/* overlays */
+.stage-bar{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border:1px solid var(--outline-variant);border-radius:16px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:800;letter-spacing:0.6px;padding:6px 10px;border-radius:999px;background:var(--orange);color:#fff}
+.hint{font-size:11px;color:var(--on-surface-variant);display:flex;align-items:center;gap:6px}
+.size-tags{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+.tag{font-size:10px;font-weight:700;padding:5px 8px;border-radius:999px;background:rgba(28,20,18,0.86);color:#fff}
+.tag.orange{background:var(--orange)}
+.map{width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--outline-variant);background:var(--surface-container)}
+.map img{width:100%;height:140px;object-fit:cover;display:block}
+.spec{width:100%;border-collapse:collapse;font-size:12px}
+.spec th{text-align:left;padding:8px 0;color:var(--on-surface-variant);font-weight:700;width:86px}
+.spec td{padding:8px 0;font-weight:600}
+.skin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.skin-thumb{border-radius:12px;overflow:hidden;border:1px solid var(--outline-variant);background:#fff}
+.skin-thumb img{width:100%;height:72px;object-fit:cover;display:block}
+.skin-thumb p{font-size:10px;font-weight:700;padding:6px 8px;text-align:center;color:var(--on-surface-variant)}
+.showcase-note{font-size:11px;line-height:1.6;color:var(--on-surface-variant);background:var(--orange-soft);border:1px solid #FFD4BC;padding:10px 12px;border-radius:12px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">Q</div>
+    <div>
+      <h1>中梦电梯皮肤 · 3D 展厅</h1>
+      <p>ZOMER ELEVATOR SKIN SHOWCASE — Material Design 3 · 活力橙 · 1:1 实尺</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button class="m3-btn" id="autoBtn" onclick="autoRotate=!autoRotate; this.classList.toggle('filled',autoRotate)">⟳ 自动旋转</button>
+    <button class="m3-btn filled" onclick="resetView()">↺ 重置视角</button>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="card side-left">
+    <div class="card-head"><h2>皮肤 / Skin</h2><span class="badge" id="skinBadge">SKIN 01</span></div>
+    <div class="card-body">
+      <div class="chips" id="chips"></div>
+      <div class="divider"></div>
+      <div class="control-row"><span class="control-label">视图</span></div>
+      <div class="segmented" id="viewSeg">
+        <button class="seg active" data-view="interior">内部透视</button>
+        <button class="seg" data-view="exterior">外部候梯</button>
+        <button class="seg" data-view="both">内外对照</button>
+      </div>
+      <div class="control-row" style="margin-top:12px"><span class="control-label">内门开合</span><span class="mini" id="doorPct">85% 开</span></div>
+      <input class="slider" type="range" id="doorSlider" min="0" max="100" value="85">
+      <div class="control-row"><span class="control-label">外门跟随</span><div class="switch on" id="linkSwitch" onclick="this.classList.toggle('on')"><i></i></div></div>
+      <div class="control-row"><span class="control-label">右窄墙按钮</span><div class="switch on" id="btnSwitch" onclick="this.classList.toggle('on');document.getElementById('btnPanel').style.display=this.classList.contains('on')?'flex':'none'"><i></i></div></div>
+      <div class="control-row"><span class="control-label">右窄墙 A4 公告</span><div class="switch on" id="noticeSwitch" onclick="this.classList.toggle('on');document.getElementById('noticeEl').style.display=this.classList.contains('on')?'flex':'none'"><i></i></div></div>
+      <p class="mini" style="margin-top:8px">拖拽旋转 · 滚轮缩放 · 双击回正。<b>左/中/右</b>为轿厢三面（150/160/150×245cm）；<b>内门/外门</b>从中分缝 90×210cm；<b>内门左右 35cm 窄墙</b>为门侧竖条，按钮仅在<b>右窄墙</b>上叠加于贴纸之上。</p>
+    </div>
+  </aside>
+
+  <main class="stage-wrap">
+    <div class="stage">
+      <div class="size-tags" id="sizeTags">
+        <span class="tag orange">轿厢 150+160+150 ×245cm</span>
+        <span class="tag">门 90×210cm 中分</span>
+        <span class="tag">门侧窄墙 35×245cm</span>
+        <span class="tag">顶封 横条</span>
+      </div>
+      <div class="scene" id="scene">
+        <div class="elevator doors-open" id="elevator">
+          <div class="face ceiling"><img id="ceilImg" src="assets/1/内部门上.webp" alt="top"></div>
+          <div class="face floor"></div>
+          <div class="face back"><img class="tex" id="backImg" src="assets/1/中.webp" alt="中-后墙 160"></div>
+          <div class="face left"><img class="tex" id="leftImg" src="assets/1/左.webp" alt="左-侧墙 150"></div>
+          <div class="face right"><img class="tex" id="rightImg" src="assets/1/右.webp" alt="右-侧墙 150"></div>
+
+          <!-- hallway exterior (only visible in exterior/both) – pure gray -->
+          <div class="hall" id="hall">
+            <div class="hall-wall left"></div>
+            <div class="hall-wall right"></div>
+          </div>
+
+          <!-- front frame -->
+          <div class="front">
+            <div class="jamb left"><img id="jambLeftImg" src="assets/1/内部右边.webp" alt="内部右边 灰色">
+              <div class="btn-panel" id="btnPanel">
+                <div class="led">12 ↑</div>
+                <div class="btn">▲</div><div class="btn active">12</div><div class="btn">11</div><div class="btn">10</div><div class="btn">▼</div>
+                <div style="font-size:7px;color:#6a5f5b;font-weight:800;letter-spacing:0.5px;margin-top:2px">ZOMER</div>
+              </div>
+              <div class="notice" id="noticeEl">
+                <h4>社区公告 · NOTICE</h4>
+                <p>人才公寓消防演练<br>6月28日 15:00 全员参与<br>请勿占用消防通道</p>
+                <p style="color:var(--orange);font-weight:800">中梦集团·物业服务</p>
+                <div class="qr"></div>
+              </div>
+            </div>
+            <div class="jamb right"><img id="jambRightImg" src="assets/1/内部左边.webp" alt="内部左边 橙色"></div>
+            <div class="header"><img id="headerImg" src="assets/1/内部门上.webp" alt="内上"></div>
+            <div class="frame-line"></div>
+            <div class="inner-doors" id="innerDoors">
+              <div class="leaf left"><img id="innerDoorImgL" src="assets/1/内门.webp" alt="内门左半"></div>
+              <div class="leaf right"><img id="innerDoorImgR" src="assets/1/内门.webp" alt="内门右半"></div>
+            </div>
+            <div class="outer-doors" id="outerDoors">
+              <div class="leaf left"><img id="outerDoorImgL" src="assets/1/外门.webp" alt="外门左半"></div>
+              <div class="leaf right"><img id="outerDoorImgR" src="assets/1/外门.webp" alt="外门右半"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stage-bar">
+        <span class="badge" id="stageTitle">SKIN 01 — 奔赴理想，也享受日常 · DAILY JOY</span>
+        <span class="hint">⬢ 拖拽旋转 &nbsp; ◎ 滚轮缩放 &nbsp; ◇ 双击回正 &nbsp; · 可同时看到内外门</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>8 张贴纸落位 / 8 STICKERS MAP</h2><span style="font-size:11px;color:var(--on-surface-variant)">按 150/160/150/35/90 实测 1:1</span></div>
+      <div class="card-body">
+        <div class="skin-grid" id="thumbGrid"></div>
+        <p class="showcase-note" style="margin-top:12px">落位：<b>中</b>=后墙 160×245；<b>左/右</b>=轿厢侧墙 150×245；<b>内部左边/右边</b>=门侧窄墙 35×245（<b>右窄墙含按钮面板叠加层</b>）；<b>内门/外门</b>=轿/厅门 90×210 从中分缝；<b>内上</b>=门头横封。拖动视角即可同时看到<b>内门在内、外门在外</b>的双层门效果。</p>
+      </div>
+    </div>
+  </main>
+
+  <aside class="card side-right">
+    <div class="card-head"><h2>详情 / Spec</h2><span style="font-size:10px;background:var(--surface-container);padding:4px 8px;border-radius:999px;font-weight:700">M3 · 活力橙</span></div>
+    <div class="card-body">
+      <div class="map"><img id="heroImg" src="assets/1/中.webp" alt="hero"></div>
+      <h3 id="specTitle" style="font-size:15px;font-weight:900;margin:12px 0 4px">SKIN 01 — DAILY JOY</h3>
+      <p id="specDesc" style="font-size:12px;color:var(--on-surface-variant);line-height:1.6">云端橙色 Q 形环，微缩人物休憩其上，传达“奔赴理想，也享受日常”的松弛感。</p>
+      <table class="spec" style="margin-top:12px">
+        <tr><th>轿厢</th><td>150 + 160 + 150 ×245 cm</td></tr>
+        <tr><th>门洞</th><td>90 ×210 cm（中分）</td></tr>
+        <tr><th>门侧窄墙</th><td>35 ×245 cm（含右按钮）</td></tr>
+        <tr><th>贴纸</th><td>8 张 / 组 ×4 组</td></tr>
+        <tr><th>设计语言</th><td>Material Design 3 · 活力橙 #FF6B35</td></tr>
+      </table>
+      <div class="divider"></div>
+      <p style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--on-surface-variant)">本组 8 张</p>
+      <div class="skin-grid" id="miniGrid"></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const skins=[
+  {id:'1',label:'SKIN 01',title:'奔赴理想，也享受日常',en:'DAILY JOY · LIVE WELL',desc:'云端巨型橙色 Q 环，人物或坐或立于环顶与云端，整体通透留白，强调松弛与日常感。',thumb:'assets/1/中.webp',top:'assets/1/内部门上.webp'},
+  {id:'2',label:'SKIN 02',title:'心向暖阳，自有光芒',en:'ENERGY ON',desc:'逆光剪影：单人走向 Q 环底部光源，地面拉长影，光芒从环心溢出，仪式感与希望感最强。',thumb:'assets/2/中.webp',top:'assets/2/内上.webp'},
+  {id:'3',label:'SKIN 03',title:'心向暖阳，自有光芒',en:'ENERGY ON · STAIRS',desc:'城市天际线 + 盘旋白阶通向 Q 形光门，日出穿环而过，适合大堂候梯的迎光动线。',thumb:'assets/3/中.webp',top:'assets/3/内上.webp'},
+  {id:'4',label:'SKIN 04',title:'中国人才全周期服务引领者',en:'Trailblazer',desc:'水面浮台 + 橙色圆盘步道延伸至 Q 环，人物立于环口眺望远方，品牌宣言更显庄重。',thumb:'assets/4/中.webp',top:'assets/4/内上.webp'},
+];
+let current='1';
+let autoRotate=false;
+const chipsEl=document.getElementById('chips');
+const thumbGrid=document.getElementById('thumbGrid');
+const miniGrid=document.getElementById('miniGrid');
+
+function buildChips(){
+  chipsEl.innerHTML=skins.map(s=>`
+    <button class="chip ${s.id===current?'active':''}" onclick="switchSkin('${s.id}')">
+      <div class="chip-thumb"><img src="${s.thumb}" loading="lazy"></div>
+      <div class="chip-main"><div class="chip-title">${s.label} — ${s.title}</div><div class="chip-sub">${s.en}</div></div>
+      <span class="chip-meta">8张</span>
+    </button>
+  `).join('');
+}
+function buildThumbGrid(id){
+  const topName=id==='1'?'内部门上':'内上';
+  const files=[{f:'中.webp',l:'中 ·后墙 160'},{f:'左.webp',l:'左 ·侧墙 150'},{f:'右.webp',l:'右 ·侧墙 150'},{f:'内部左边.webp',l:'内部左边 35'},{f:'内部右边.webp',l:'内部右边 35◇按钮'},{f:'内门.webp',l:'内门 90中分'},{f:'外门.webp',l:'外门 90中分'},{f:topName+'.webp',l:'内上·门头横封'}];
+  thumbGrid.innerHTML=files.map(o=>`<div class="skin-thumb"><img src="assets/${id}/${o.f}" loading="lazy"><p>${o.l}</p></div>`).join('');
+  miniGrid.innerHTML=files.map(o=>`<div class="skin-thumb"><img src="assets/${id}/${o.f}" loading="lazy"><p>${o.l}</p></div>`).join('');
+}
+function switchSkin(id){
+  current=id;
+  const s=skins.find(x=>x.id===id);
+  buildChips(); buildThumbGrid(id);
+  document.getElementById('backImg').src=`assets/${id}/中.webp`;
+  document.getElementById('leftImg').src=`assets/${id}/左.webp`;
+  document.getElementById('rightImg').src=`assets/${id}/右.webp`;
+  document.getElementById('jambLeftImg').src=`assets/${id}/内部右边.webp`;
+  document.getElementById('jambRightImg').src=`assets/${id}/内部左边.webp`;
+  document.getElementById('innerDoorImgL').src=`assets/${id}/内门.webp`;
+  document.getElementById('innerDoorImgR').src=`assets/${id}/内门.webp`;
+  document.getElementById('outerDoorImgL').src=`assets/${id}/外门.webp`;
+  document.getElementById('outerDoorImgR').src=`assets/${id}/外门.webp`;
+  const topFile=id==='1'?'内部门上.webp':'内上.webp';
+  document.getElementById('ceilImg').src=`assets/${id}/${topFile}`;
+  document.getElementById('headerImg').src=`assets/${id}/${topFile}`;
+  document.getElementById('heroImg').src=s.thumb;
+  document.getElementById('specTitle').textContent=`${s.label} — ${s.en}`;
+  document.getElementById('specDesc').textContent=s.desc;
+  document.getElementById('skinBadge').textContent=s.label;
+  document.getElementById('stageTitle').textContent=`${s.label} — ${s.title} · ${s.en}`;
+}
+buildChips(); buildThumbGrid('1');
+
+// view seg – now you can see both doors when dragging
+const elevator=document.getElementById('elevator');
+document.getElementById('viewSeg').addEventListener('click',e=>{
+  if(!e.target.classList.contains('seg')) return;
+  document.querySelectorAll('.seg').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  const v=e.target.dataset.view;
+  elevator.classList.remove('mode-exterior','mode-both');
+  if(v==='exterior'){ elevator.classList.add('mode-exterior'); setDoors(0); }
+  else if(v==='both'){ elevator.classList.add('mode-exterior','mode-both'); setDoors(50); }
+  else { setDoors(85); }
+});
+
+function setDoors(pct){
+  document.getElementById('doorSlider').value=pct;
+  document.getElementById('doorPct').textContent=pct+'% '+(pct>50?'开':'关');
+  const innerL=document.querySelector('#innerDoors .leaf.left');
+  const innerR=document.querySelector('#innerDoors .leaf.right');
+  const outerL=document.querySelector('#outerDoors .leaf.left');
+  const outerR=document.querySelector('#outerDoors .leaf.right');
+  const v=102*(pct/100);
+  innerL.style.transform=`translateX(-${v}%)`;
+  innerR.style.transform=`translateX(${v}%)`;
+  const link=document.getElementById('linkSwitch').classList.contains('on');
+  if(link){
+    outerL.style.transform=`translateX(-${v}%)`;
+    outerR.style.transform=`translateX(${v}%)`;
+    if(pct>10) elevator.classList.add('mode-doors-open'); else elevator.classList.remove('mode-doors-open');
+  }
+  if(pct>10) elevator.classList.add('doors-open'); else elevator.classList.remove('doors-open');
+}
+document.getElementById('doorSlider').addEventListener('input',e=> setDoors(parseInt(e.target.value)));
+
+// drag rotate + zoom
+const scene=document.getElementById('scene');
+let rotY=-22, rotX=7, startX=0,startY=0,dragging=false,scale=1,baseRotY=-22,baseRotX=7;
+function apply(){ elevator.style.transform=`rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`; }
+scene.addEventListener('pointerdown',e=>{
+  dragging=true; startX=e.clientX; startY=e.clientY; baseRotY=rotY; baseRotX=rotX;
+  elevator.classList.add('dragging'); scene.setPointerCapture(e.pointerId);
+});
+scene.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const dx=e.clientX-startX, dy=e.clientY-startY;
+  rotY=baseRotY + dx*0.35;
+  rotX=Math.max(-18,Math.min(28, baseRotX - dy*0.3));
+  apply();
+});
+scene.addEventListener('pointerup',e=>{ dragging=false; elevator.classList.remove('dragging'); });
+scene.addEventListener('wheel',e=>{
+  e.preventDefault();
+  scale=Math.max(0.72,Math.min(1.7, scale - e.deltaY*0.001));
+  apply();
+},{passive:false});
+scene.addEventListener('dblclick',resetView);
+function resetView(){ rotY=-22; rotX=7; scale=1; apply(); }
+setInterval(()=>{ if(autoRotate && !dragging){ rotY+=0.28; apply(); }},16);
+setDoors(85);
+</script>
+</body>
+</html>
