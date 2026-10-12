@@ -78,7 +78,7 @@ img{-webkit-user-drag:none}
 .elevator.doors-open .inner-doors .leaf.left{transform:translateX(-102%)}
 .elevator.doors-open .inner-doors .leaf.right{transform:translateX(102%)}
 
-.outer-doors{position:absolute;left:30px;right:30px;top:34px;bottom:36px;display:flex;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .25s,transform .25s;transform:translateZ(1px);background:#EEE8E4;border:2px solid #1A1A1A;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.outer-doors{position:absolute;left:70px;right:70px;top:70px;bottom:0;display:flex;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .25s,transform .25s;transform:translateZ(1px);background:#EEE8E4;border:2px solid #1A1A1A;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .outer-doors .leaf{flex:1;overflow:hidden;background:#F2EEEA;transition:transform .7s cubic-bezier(.4,0,.2,1)}
 .outer-doors .leaf img{width:200%;height:100%;object-fit:cover;display:block}
 .outer-doors .leaf.left img{object-position:left center}
@@ -111,6 +111,11 @@ img{-webkit-user-drag:none}
 .btn-panel .led{width:28px;height:14px;background:#111;border-radius:5px;color:#FF3B30;font-size:9px;font-weight:900;display:grid;place-items:center;letter-spacing:1px;box-shadow:inset 0 0 5px rgba(255,59,48,.6)}
 .btn-panel .btn{width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#fff 0%,#E9E2DE 100%);border:1px solid #B0A6A2;display:grid;place-items:center;font-size:10px;font-weight:800;color:#3a2a22;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .btn-panel .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.hall-panel{position:absolute;top:50%;left:6px;transform:translateY(-50%);width:48px;height:112px;background:linear-gradient(180deg,#F4F1EF 0%,#D6CDC8 100%);border-radius:12px;border:1px solid #B8ADA8;box-shadow:0 4px 16px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.7);display:none;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;gap:8px;pointer-events:none;z-index:4}
+.hall-label{font-size:7px;color:#5D514B;font-weight:800;letter-spacing:.2px;white-space:nowrap}
+.hall-panel .btn{width:28px;height:28px;border-radius:50%;background:linear-gradient(180deg,#fff 0%,#E9E2DE 100%);border:1px solid #B0A6A2;display:grid;place-items:center;font-size:12px;font-weight:900;color:#3a2a22;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.elevator.mode-exterior .hall-panel{display:flex}
+.elevator.mode-exterior:not(.mode-both) .cab-panel{display:none}
 .notice{position:absolute;top:56%;width:84px;height:118px;background:#fff;border-radius:4px;border:1px solid #D8C2B8;box-shadow:0 4px 14px rgba(0,0,0,.14);padding:6px;display:flex;flex-direction:column;gap:3px;pointer-events:none;transition:opacity .25s}
 .jamb.right .notice{right:58px;left:auto}
 .jamb.left .notice{left:58px;right:auto}
@@ -241,6 +246,7 @@ img{-webkit-user-drag:none}
     </div>
   </div>
   <div class="top-actions">
+    <button class="m3-btn filled" id="saveBtn" onclick="saveSnapshot()">▣ 保存方案</button>
     <button class="m3-btn" id="autoBtn" onclick="setAuto(!autoRotate)">⟳ 自动旋转</button>
     <button class="m3-btn tonal" onclick="resetView()">↺ 重置视角</button>
   </div>
@@ -253,7 +259,7 @@ img{-webkit-user-drag:none}
     <div class="stage">
       <div class="size-tags">
         <span class="tag orange">轿厢 150+160+150 ×245cm</span>
-        <span class="tag">门 90×210cm 中分</span>
+        <span class="tag">前门 / 厅门 90×210cm · 独立贴纸</span>
         <span class="tag">门侧窄墙 35×245cm</span>
         <span class="tag">顶封 横条</span>
       </div>
@@ -272,10 +278,15 @@ img{-webkit-user-drag:none}
 
           <div class="front">
             <div class="jamb left" data-region="jambL" title="点击上传 · 左窄墙"><img id="jambLeftImg" src="assets/1/内部右边.webp" alt="内部右边 灰色" decoding="async">
-              <div class="btn-panel" id="btnPanel">
+              <div class="btn-panel cab-panel" id="btnPanel">
                 <div class="led">12 ↑</div>
                 <div class="btn">▲</div><div class="btn active">12</div><div class="btn">11</div><div class="btn">10</div><div class="btn">▼</div>
                 <div style="font-size:7px;color:#6a5f5b;font-weight:800;letter-spacing:.5px;margin-top:2px">ZOMER</div>
+              </div>
+              <div class="hall-panel" id="hallPanel" aria-label="厅外上下行按钮">
+                <div class="hall-label">厅外呼梯</div>
+                <div class="btn">▲</div>
+                <div class="btn">▼</div>
               </div>
               <div class="notice" id="noticeEl" data-region="notice" title="点击上传 · A4 公告">
                 <div class="notice-text" id="noticeText">
@@ -399,7 +410,7 @@ function buildCases(){
 }
 function buildThumbGrid(id){
   const topName=id==='1'?'内部门上':'内上';
-  const files=[{f:'中.webp',l:'中·后墙'},{f:'左.webp',l:'左·侧墙'},{f:'右.webp',l:'右·侧墙'},{f:'内部左边.webp',l:'内部左边'},{f:'内部右边.webp',l:'内部右边◇按钮'},{f:'内门.webp',l:'内门'},{f:'外门.webp',l:'外门'},{f:topName+'.webp',l:'内上·门头'}];
+  const files=[{f:'中.webp',l:'中·后墙'},{f:'左.webp',l:'左·侧墙'},{f:'右.webp',l:'右·侧墙'},{f:'内部左边.webp',l:'内部左边·轿厢内'},{f:'内部右边.webp',l:'内部右边·轿厢内◇按钮'},{f:'内门.webp',l:'轿门·内门'},{f:'外门.webp',l:'厅门·前门'},{f:topName+'.webp',l:'内上·门头'}];
   const FILE_REGION={'中.webp':'back','左.webp':'left','右.webp':'right','内部左边.webp':'jambR','内部右边.webp':'jambL','内门.webp':'innerDoor','外门.webp':'outerDoor'};
   thumbGrid.innerHTML=files.map(o=>{
     const rk=FILE_REGION[o.f]||((o.f==='内上.webp'||o.f==='内部门上.webp')?'header':null);
@@ -426,10 +437,10 @@ const REGIONS=[
   {key:'back',   name:'后墙',     sub:'中 · 160×245cm',        ids:['backImg'],  def:id=>`assets/${id}/中.webp`},
   {key:'left',   name:'左侧墙',   sub:'左 · 150×245cm',        ids:['leftImg'],  def:id=>`assets/${id}/左.webp`},
   {key:'right',  name:'右侧墙',   sub:'右 · 150×245cm',        ids:['rightImg'], def:id=>`assets/${id}/右.webp`},
-  {key:'jambL',  name:'左窄墙',   sub:'门侧 35 · 含按钮/公告',  ids:['jambLeftImg'],  def:id=>`assets/${id}/内部右边.webp`},
-  {key:'jambR',  name:'右窄墙',   sub:'门侧 35 · 竖条',        ids:['jambRightImg'], def:id=>`assets/${id}/内部左边.webp`},
-  {key:'innerDoor',name:'内门',  sub:'90×210 中分双扇',       ids:['innerDoorImgL','innerDoorImgR'], def:id=>`assets/${id}/内门.webp`},
-  {key:'outerDoor',name:'外门',  sub:'90×210 中分双扇',       ids:['outerDoorImgL','outerDoorImgR'], def:id=>`assets/${id}/外门.webp`},
+  {key:'jambL',  name:'左窄墙',   sub:'轿厢内 35 · 含楼层按钮/公告',  ids:['jambLeftImg'],  def:id=>`assets/${id}/内部右边.webp`},
+  {key:'jambR',  name:'右窄墙',   sub:'轿厢内 35 · 竖条贴纸',        ids:['jambRightImg'], def:id=>`assets/${id}/内部左边.webp`},
+  {key:'innerDoor',name:'轿门（内门）',  sub:'轿厢内 90×210 · 中分双扇',       ids:['innerDoorImgL','innerDoorImgR'], def:id=>`assets/${id}/内门.webp`},
+  {key:'outerDoor',name:'厅门（前门）',  sub:'电梯外 90×210 · 独立中分双扇',       ids:['outerDoorImgL','outerDoorImgR'], def:id=>`assets/${id}/外门.webp`},
   {key:'header', name:'门头横封', sub:'内上 · 横条',           ids:['headerImg','ceilImg'], def:id=>`assets/${id}/${id==='1'?'内部门上':'内上'}.webp`},
   {key:'notice', name:'A4 公告',  sub:'左窄墙公告位',          ids:['noticeImgEl'], def:()=>''},
 ];
@@ -451,6 +462,22 @@ function setStatus(t){ const el=document.getElementById('uploadStatus'); if(el) 
 function saveCustoms(){
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(customs)); return true; }
   catch(e){ setStatus('⚠ 本机存储已满，这张图只在本次浏览生效'); return false; }
+}
+function saveSnapshot(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const stamp=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const name=`电梯方案-${stamp}`;
+  const view=document.querySelector('.seg.active')?.dataset.view||'interior';
+  const snapshot={name,createdAt:d.toISOString(),skin:current,customs,view,doorPct:Number(document.getElementById('doorSlider').value),link:document.getElementById('linkSwitch').classList.contains('on'),buttons:document.getElementById('btnSwitch').classList.contains('on'),notice:document.getElementById('noticeSwitch').classList.contains('on'),rotY,rotX,scale};
+  try{
+    const list=JSON.parse(localStorage.getItem('zmElevatorSavedDesignsV1')||'[]')||[];
+    list.unshift(snapshot);
+    localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(list.slice(0,20)));
+    setStatus(`✓ 已保存：${name}（本机方案记录）`);
+    document.getElementById('saveBtn').textContent='✓ 已保存';
+    setTimeout(()=>{ document.getElementById('saveBtn').textContent='▣ 保存方案'; },1800);
+  }catch(e){ setStatus('⚠ 方案保存失败：本机存储空间不足'); }
 }
 function setCustom(k,data){ customs[k]=data; const ok=saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus(ok?'✓ 已保存到本机，刷新/换皮肤都不丢':'⚠ 存储已满，仅本次生效'); }
 function clearCustom(k){ delete customs[k]; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已恢复该区域的皮肤原图'); }
