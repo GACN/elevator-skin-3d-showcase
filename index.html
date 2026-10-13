@@ -187,8 +187,14 @@ img{-webkit-user-drag:none}
 .section-head{display:flex;align-items:baseline;gap:10px;margin:4px 0 -4px}
 .section-head h2{font-size:17px;font-weight:700;letter-spacing:-.1px}
 .section-head span{font-size:12px;color:var(--on-surface-variant)}
-.case-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.carousel-shell{display:flex;align-items:center;gap:8px;min-width:0}
+.carousel-nav{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--outline-variant);border-radius:50%;background:var(--surface);color:var(--on-surface);font-size:24px;line-height:1;cursor:pointer;box-shadow:var(--elev1);transition:.15s}
+.carousel-nav:hover{background:var(--secondary-container);border-color:var(--primary)}
+.carousel-nav:active{transform:scale(.94)}
+.case-grid,.saved-grid{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:10px 2px 8px;flex:1;min-width:0;scrollbar-width:none}
+.case-grid::-webkit-scrollbar,.saved-grid::-webkit-scrollbar{display:none}
 .case{background:var(--surface);border:1.5px solid var(--outline-variant);border-radius:16px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,border-color .18s,transform .18s;text-align:left;font-family:inherit;padding:0}
+.case{flex:0 0 270px;scroll-snap-align:start}
 .case:hover{box-shadow:var(--elev2)}
 .case:active{transform:scale(.98)}
 .case img{width:100%;height:150px;object-fit:cover;object-position:center 30%;display:block;background:#f3ece8}
@@ -199,6 +205,15 @@ img{-webkit-user-drag:none}
 .case.active{border-color:var(--primary);background:#FFF6F1;box-shadow:var(--elev2)}
 .case.active .case-label{background:var(--primary);color:#fff}
 .case.active .case-title::after{content:' ✓';color:var(--primary)}
+.saved-card{flex:0 0 290px;scroll-snap-align:start;background:var(--surface);border:1.5px solid var(--outline-variant);border-radius:16px;overflow:hidden;box-shadow:var(--elev1)}
+.saved-card img{width:100%;height:130px;object-fit:cover;object-position:center 30%;display:block;background:#f3ece8}
+.saved-card-body{padding:10px 12px 12px}
+.saved-card-title{font-size:13px;font-weight:800;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-card-meta{font-size:10.5px;color:var(--on-surface-variant);margin-top:4px}
+.saved-card-actions{display:flex;gap:7px;margin-top:10px}
+.saved-card-actions .mini-btn{padding:6px 10px}
+.saved-card-actions .delete{color:#A52216;border-color:#E7B8B0}
+.saved-empty{padding:14px 16px;border:1px dashed var(--outline);border-radius:14px;color:var(--on-surface-variant);font-size:12px;background:rgba(255,255,255,.45)}
 
 /* ===== lower grid ===== */
 .lower{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
@@ -245,9 +260,9 @@ img{-webkit-user-drag:none}
   .elevator{width:320px;height:490px}
   .topbar{flex-wrap:wrap}
   .top-actions{flex-wrap:wrap}
-  .case-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .case-grid::-webkit-scrollbar{display:none}
-  .case{flex:0 0 58vw;max-width:240px;scroll-snap-align:start}
+  .carousel-nav{display:none}
+  .case-grid,.saved-grid{gap:10px;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .case,.saved-card{flex-basis:58vw;max-width:260px}
   .case img{height:130px}
   .lower{grid-template-columns:1fr}
   .region-list{grid-template-columns:1fr}
@@ -375,8 +390,23 @@ img{-webkit-user-drag:none}
 
   <!-- ===== 皮肤案例 ===== -->
   <div>
-    <div class="section-head"><h2>皮肤案例</h2><span>4 组方案 · 点击切换到 3D 展厅</span></div>
-    <div class="case-grid" id="caseGrid" style="margin-top:10px"></div>
+    <div class="section-head"><h2>皮肤案例</h2><span>4 组方案 · 左右滑动浏览 · 点击切换到 3D 展厅</span></div>
+    <div class="carousel-shell">
+      <button class="carousel-nav" aria-label="向左浏览案例" onclick="nudgeCarousel('caseGrid',-1)">‹</button>
+      <div class="case-grid" id="caseGrid"></div>
+      <button class="carousel-nav" aria-label="向右浏览案例" onclick="nudgeCarousel('caseGrid',1)">›</button>
+    </div>
+  </div>
+
+  <!-- ===== 已保存方案 ===== -->
+  <div>
+    <div class="section-head"><h2>已保存方案</h2><span id="savedCount">0 组 · 保存在本机，可载入或删除</span></div>
+    <div class="carousel-shell">
+      <button class="carousel-nav" aria-label="向左浏览已保存方案" onclick="nudgeCarousel('savedGrid',-1)">‹</button>
+      <div class="saved-grid" id="savedGrid"></div>
+      <button class="carousel-nav" aria-label="向右浏览已保存方案" onclick="nudgeCarousel('savedGrid',1)">›</button>
+    </div>
+    <div class="saved-empty" id="savedEmpty">还没有保存方案。点击右上角“保存方案”，这里会出现可左右滑动的方案卡片。</div>
   </div>
 
   <!-- ===== 自定义 + 详情 ===== -->
@@ -428,6 +458,44 @@ let current='1';
 let autoRotate=false;
 const caseGrid=document.getElementById('caseGrid');
 const thumbGrid=document.getElementById('thumbGrid');
+const savedGrid=document.getElementById('savedGrid');
+const savedEmpty=document.getElementById('savedEmpty');
+const savedCount=document.getElementById('savedCount');
+let savedDesigns=[];
+try{ savedDesigns=JSON.parse(localStorage.getItem('zmElevatorSavedDesignsV1')||'[]')||[]; }catch(e){ savedDesigns=[]; }
+
+function nudgeCarousel(id,dir){
+  const el=document.getElementById(id); if(!el) return;
+  el.scrollBy({left:dir*Math.max(220,Math.round(el.clientWidth*.72)),behavior:'smooth'});
+}
+function snapshotImage(s){
+  const custom=s&&s.customs||{};
+  return custom.back||custom.left||custom.right||custom.innerDoor||custom.outerDoor||skins.find(x=>x.id===s.skin)?.thumb||skins[0].thumb;
+}
+function formatSnapshotMeta(s){
+  const d=s&&s.createdAt?new Date(s.createdAt):null;
+  const when=d&&!Number.isNaN(d.getTime())?d.toLocaleString('zh-CN',{hour12:false}):'本机保存';
+  const view={interior:'内部透视',exterior:'外部候梯',both:'内外对照'}[s&&s.view]||'内部透视';
+  return `${view} · ${when}`;
+}
+function renderSavedDesigns(){
+  savedDesigns=savedDesigns.filter(Boolean).slice(0,20);
+  savedCount.textContent=`${savedDesigns.length} 组 · 保存在本机，可载入或删除`;
+  savedEmpty.style.display=savedDesigns.length?'none':'block';
+  savedGrid.innerHTML=savedDesigns.map((s,i)=>`
+    <article class="saved-card">
+      <img src="${snapshotImage(s)}" loading="lazy" alt="${s.name||'已保存方案'}">
+      <div class="saved-card-body">
+        <div class="saved-card-title" title="${s.name||''}">${s.name||'未命名方案'}</div>
+        <div class="saved-card-meta">${formatSnapshotMeta(s)}</div>
+        <div class="saved-card-actions">
+          <button class="mini-btn up" onclick="loadSnapshot(${i})">载入方案</button>
+          <button class="mini-btn delete" onclick="deleteSnapshot(${i})">删除</button>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
 
 function buildCases(){
   caseGrid.innerHTML=skins.map(s=>`
@@ -504,13 +572,43 @@ function saveSnapshot(){
   const view=document.querySelector('.seg.active')?.dataset.view||'interior';
   const snapshot={name,createdAt:d.toISOString(),skin:current,customs,view,doorPct:Number(document.getElementById('doorSlider').value),link:document.getElementById('linkSwitch').classList.contains('on'),buttons:document.getElementById('btnSwitch').classList.contains('on'),notice:document.getElementById('noticeSwitch').classList.contains('on'),rotY,rotX,scale};
   try{
-    const list=JSON.parse(localStorage.getItem('zmElevatorSavedDesignsV1')||'[]')||[];
-    list.unshift(snapshot);
-    localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(list.slice(0,20)));
+    savedDesigns=[snapshot,...savedDesigns].slice(0,20);
+    localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns));
+    renderSavedDesigns();
     setStatus(`✓ 已保存：${name}（本机方案记录）`);
     document.getElementById('saveBtn').textContent='✓ 已保存';
     setTimeout(()=>{ document.getElementById('saveBtn').textContent='▣ 保存方案'; },1800);
   }catch(e){ setStatus('⚠ 方案保存失败：本机存储空间不足'); }
+}
+function deleteSnapshot(index){
+  if(!Number.isInteger(index)||!savedDesigns[index]) return;
+  const name=savedDesigns[index].name||'该方案';
+  savedDesigns.splice(index,1);
+  try{ localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns)); }catch(e){}
+  renderSavedDesigns();
+  setStatus(`已删除：${name}`);
+}
+function loadSnapshot(index){
+  const s=savedDesigns[index]; if(!s) return;
+  current=s.skin||'1';
+  customs=s.customs||{};
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify(customs)); }catch(e){}
+  switchSkin(current); renderRegions();
+  document.getElementById('linkSwitch').classList.toggle('on',!!s.link);
+  document.getElementById('btnSwitch').classList.toggle('on',s.buttons!==false);
+  document.getElementById('noticeSwitch').classList.toggle('on',s.notice!==false);
+  document.getElementById('btnPanel').style.display=s.buttons===false?'none':'flex';
+  document.getElementById('noticeEl').style.display=s.notice===false?'none':'flex';
+  setView(s.view||'interior');
+  document.getElementById('doorSlider').value=Number.isFinite(s.doorPct)?s.doorPct:0;
+  setDoors(Number.isFinite(s.doorPct)?s.doorPct:0);
+  rotY=Number.isFinite(s.rotY)?s.rotY:158;
+  rotX=Number.isFinite(s.rotX)?s.rotX:0;
+  scale=Number.isFinite(s.scale)?s.scale:1;
+  scheduleApply();
+  requestAnimationFrame(syncClickZones);
+  setStatus(`✓ 已载入：${s.name||'方案'}`);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 function setCustom(k,data){ customs[k]=data; const ok=saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus(ok?'✓ 已保存到本机，刷新/换皮肤都不丢':'⚠ 存储已满，仅本次生效'); }
 function clearCustom(k){ delete customs[k]; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已恢复该区域的皮肤原图'); }
@@ -547,21 +645,23 @@ function downscale(img,max=1200,q=0.82){
   return webp.indexOf('data:image/webp')===0?webp:c.toDataURL('image/jpeg',q);
 }
 document.getElementById('clearAllBtn').onclick=()=>{ customs={}; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已清除全部自定义，全部回到皮肤原图'); };
-buildCases(); buildThumbGrid('1'); renderRegions(); applyAll();
+buildCases(); buildThumbGrid('1'); renderRegions(); applyAll(); renderSavedDesigns();
 
 /* ==== 视图切换 ==== */
 const elevator=document.getElementById('elevator');
-document.getElementById('viewSeg').addEventListener('click',e=>{
-  if(!e.target.classList.contains('seg')) return;
+function setView(v){
   document.querySelectorAll('.seg').forEach(b=>b.classList.remove('active'));
-  e.target.classList.add('active');
-  const v=e.target.dataset.view;
+  const active=document.querySelector(`#viewSeg .seg[data-view="${v}"]`)||document.querySelector('#viewSeg .seg[data-view="interior"]');
+  active.classList.add('active');
   elevator.classList.remove('mode-exterior','mode-both');
   if(v==='exterior'){ elevator.classList.add('mode-exterior'); setDoors(0); }
   else if(v==='both'){ elevator.classList.add('mode-exterior','mode-both'); setDoors(0); }
   else { setDoors(0); }
   document.getElementById('viewHint').textContent=v==='exterior'?'站在厅外看外门 · 周围墙体固定灰色':v==='both'?'内外观察面展开对照 · 两套门独立，不叠图':'站在轿厢内向外看 · 内门原图方向 · 拖转可看后墙';
   resetView();
+}
+document.getElementById('viewSeg').addEventListener('click',e=>{
+  if(e.target.classList.contains('seg')) setView(e.target.dataset.view);
 });
 
 function setDoors(pct){
