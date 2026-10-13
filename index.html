@@ -43,7 +43,8 @@ img{-webkit-user-drag:none}
 /* ===== Hero stage card ===== */
 .stage-card{background:var(--surface);border:1px solid var(--outline-variant);border-radius:20px;box-shadow:var(--elev1);overflow:hidden}
 .stage{position:relative;height:min(66vh,620px);background:radial-gradient(1100px 520px at 50% -8%,#FFE9DC 0%,transparent 62%),linear-gradient(180deg,#FFFAF7 0%,#FFF1E9 100%);display:grid;place-items:center;transform:translateZ(0)}
-.scene{width:100%;height:100%;display:grid;place-items:center;perspective:1100px;perspective-origin:50% 40%;cursor:grab;user-select:none;touch-action:none}
+.scene{position:absolute;inset:0;display:grid;place-items:center;perspective:1100px;perspective-origin:50% 40%;cursor:grab;user-select:none;touch-action:none}
+.size-tags{position:relative;z-index:2}
 .scene:active{cursor:grabbing}
 .elevator{position:relative;width:320px;height:490px;transform-style:preserve-3d;transform:rotateY(-22deg) rotateX(7deg);transition:transform .6s cubic-bezier(.2,.8,.2,1);will-change:transform}
 .elevator.dragging{transition:none}
@@ -52,12 +53,34 @@ img{-webkit-user-drag:none}
 .face{position:absolute;overflow:hidden;backface-visibility:hidden;border:1px solid rgba(0,0,0,.06);background:#fff}
 .face img.tex{width:100%;height:100%;object-fit:cover;display:block}
 .face.back{width:320px;height:490px;transform:translateZ(-150px);background:#f7f2ef}
-.face.left{width:300px;height:490px;transform:rotateY(90deg) translateZ(-160px);background:#faf6f3}
-.face.right{width:300px;height:490px;transform:rotateY(-90deg) translateZ(-160px);background:#faf6f3}
+.face.left{left:10px;width:300px;height:490px;transform:rotateY(90deg) translateZ(-160px);background:#faf6f3}
+.face.right{left:10px;width:300px;height:490px;transform:rotateY(-90deg) translateZ(-160px);background:#faf6f3}
 .face.floor{display:none}
 .face.ceiling{display:none}
 
-.front{position:absolute;width:320px;height:490px;transform:translateZ(150px);transform-style:preserve-3d;pointer-events:none}
+.front{position:absolute;width:320px;height:490px;transform:translateZ(150px) rotateY(180deg);transform-style:preserve-3d;pointer-events:none;backface-visibility:hidden}
+.front > *{backface-visibility:hidden}
+.exterior-front{position:absolute;width:320px;height:490px;transform:translateZ(174px);transform-style:preserve-3d;pointer-events:none;display:none;backface-visibility:hidden}
+.exterior-front > *{backface-visibility:hidden}
+.exterior-front .jamb,.exterior-front .header{background:#E0E0E0}
+.elevator.mode-exterior .exterior-front{display:block}
+.elevator.mode-exterior:not(.mode-both) .front{display:none}
+.elevator.mode-exterior:not(.mode-both) .face{background:#E0E0E0;backface-visibility:visible;pointer-events:none}
+.elevator.mode-exterior:not(.mode-both) .face img{visibility:hidden}
+.elevator.looking-out:not(.mode-exterior) .face.back{visibility:hidden;pointer-events:none}
+/* 对照将内外两个观察面展开，而不是把两张门皮肤叠在一起。 */
+.elevator.mode-both .face{visibility:hidden;pointer-events:none}
+.elevator.mode-both .front{transform:translateX(-185px) translateZ(150px)}
+.elevator.mode-both .exterior-front{transform:translateX(185px) translateZ(174px)}
+[data-region]{pointer-events:auto}
+.elevator.mode-both .front::after,.elevator.mode-both .exterior-front::after{position:absolute;left:50%;bottom:-30px;transform:translateX(-50%);font-size:17px;font-weight:800;color:#52443E;background:#FFDBCC;border:1px solid #FFB68A;padding:4px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.10)}
+.elevator.mode-both .front::after{content:'轿厢内部 · 向外看（内门）'}
+.elevator.mode-both .exterior-front::after{content:'候梯厅外 · 看外门（外门）'}
+.click-zone{position:absolute;display:none;z-index:5;border:0;background:transparent;pointer-events:none;touch-action:none;cursor:pointer}
+.scene .click-zone[data-region="innerDoor"]{display:block}
+.elevator.mode-exterior:not(.mode-both) ~ .inner-click-zone{display:none}
+.elevator.mode-exterior:not(.mode-both) ~ .outer-click-zone{display:block}
+.elevator.mode-both ~ .inner-click-zone,.elevator.mode-both ~ .outer-click-zone{display:block}
 .jamb{position:absolute;top:0;width:70px;height:490px;background:#F5F0EB;border:1px solid rgba(0,0,0,.08);overflow:hidden}
 .jamb img{width:100%;height:100%;object-fit:cover;display:block}
 .jamb.left{left:0}
@@ -68,21 +91,21 @@ img{-webkit-user-drag:none}
 .frame-line::before{content:'ZOMER · 中梦集团';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:800;color:#3a2a22;background:#FFDBCC;padding:2px 8px;border-radius:999px;border:1px solid #FFB68A;white-space:nowrap}
 
 .inner-doors{position:absolute;left:70px;right:70px;top:70px;bottom:0;display:flex;pointer-events:none;overflow:hidden;background:#F2EEEA;transition:opacity .25s}
-.inner-doors .leaf{flex:1;overflow:hidden;transition:transform .7s cubic-bezier(.4,0,.2,1);background:#F2EEEA;border:1px solid rgba(0,0,0,.07)}
-.inner-doors .leaf img{width:200%;height:100%;object-fit:cover;display:block}
+.inner-doors .leaf{position:relative;flex:0 0 50%;min-width:0;overflow:hidden;transition:transform .7s cubic-bezier(.4,0,.2,1);background:#F2EEEA}
+.inner-doors .leaf img{position:absolute;top:0;left:0;width:200%;max-width:none;height:100%;object-fit:fill;display:block}
 .inner-doors .leaf.left img{object-position:left center}
-.inner-doors .leaf.right img{object-position:right center}
-.inner-doors .leaf.left{border-right:1px solid rgba(0,0,0,.12)}
-.inner-doors .leaf.right{border-left:1px solid rgba(0,0,0,.12)}
+.inner-doors .leaf.right img{left:-100%}
+.inner-doors .leaf.left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(0,0,0,.12);pointer-events:none}
 .elevator.doors-closed .inner-doors .leaf.left,.elevator.doors-closed .inner-doors .leaf.right{transform:translateX(0)}
 .elevator.doors-open .inner-doors .leaf.left{transform:translateX(-102%)}
 .elevator.doors-open .inner-doors .leaf.right{transform:translateX(102%)}
 
-.outer-doors{position:absolute;left:70px;right:70px;top:70px;bottom:0;display:flex;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .25s,transform .25s;transform:translateZ(1px);background:#EEE8E4;border:2px solid #1A1A1A;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.outer-doors .leaf{flex:1;overflow:hidden;background:#F2EEEA;transition:transform .7s cubic-bezier(.4,0,.2,1)}
-.outer-doors .leaf img{width:200%;height:100%;object-fit:cover;display:block}
+.outer-doors{position:absolute;left:70px;right:70px;top:70px;bottom:0;display:flex;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .25s;background:#EEE8E4;outline:2px solid #555;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.outer-doors .leaf{position:relative;flex:0 0 50%;min-width:0;overflow:hidden;background:#F2EEEA;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.outer-doors .leaf img{position:absolute;top:0;left:0;width:200%;max-width:none;height:100%;object-fit:fill;display:block}
 .outer-doors .leaf.left img{object-position:left center}
-.outer-doors .leaf.right img{object-position:right center}
+.outer-doors .leaf.right img{left:-100%}
+.outer-doors .leaf.left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(0,0,0,.12);pointer-events:none}
 .elevator.mode-exterior .outer-doors{opacity:1}
 .elevator.mode-exterior.mode-doors-open .outer-doors .leaf.left{transform:translateX(-102%)}
 .elevator.mode-exterior.mode-doors-open .outer-doors .leaf.right{transform:translateX(102%)}
@@ -219,7 +242,9 @@ img{-webkit-user-drag:none}
   .topbar{padding:8px 12px}
   .m3-btn{padding:8px 12px;font-size:12px}
   .stage{height:54vh;min-height:400px}
-  .elevator{width:280px;height:430px;transform:rotateY(-22deg) rotateX(7deg) scale(.9)}
+  .elevator{width:320px;height:490px}
+  .topbar{flex-wrap:wrap}
+  .top-actions{flex-wrap:wrap}
   .case-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .case-grid::-webkit-scrollbar{display:none}
   .case{flex:0 0 58vw;max-width:240px;scroll-snap-align:start}
@@ -283,11 +308,7 @@ img{-webkit-user-drag:none}
                 <div class="btn">▲</div><div class="btn active">12</div><div class="btn">11</div><div class="btn">10</div><div class="btn">▼</div>
                 <div style="font-size:7px;color:#6a5f5b;font-weight:800;letter-spacing:.5px;margin-top:2px">ZOMER</div>
               </div>
-              <div class="hall-panel" id="hallPanel" aria-label="厅外上下行按钮">
-                <div class="hall-label">厅外呼梯</div>
-                <div class="btn">▲</div>
-                <div class="btn">▼</div>
-              </div>
+
               <div class="notice" id="noticeEl" data-region="notice" title="点击上传 · A4 公告">
                 <div class="notice-text" id="noticeText">
                   <h4>社区公告 · NOTICE</h4>
@@ -305,12 +326,23 @@ img{-webkit-user-drag:none}
               <div class="leaf left" data-region="innerDoor" title="点击上传 · 内门"><img id="innerDoorImgL" src="assets/1/内门.webp" alt="内门左半" decoding="async"></div>
               <div class="leaf right" data-region="innerDoor" title="点击上传 · 内门"><img id="innerDoorImgR" src="assets/1/内门.webp" alt="内门右半" decoding="async"></div>
             </div>
+          </div>
+          <div class="exterior-front">
+            <div class="jamb left"></div>
+            <div class="jamb right"></div>
+            <div class="header"></div>
+            <div class="hall-panel" id="hallPanel" aria-label="厅外上下行按钮">
+              <div class="hall-label">厅外呼梯</div>
+              <div class="btn">▲</div><div class="btn">▼</div>
+            </div>
             <div class="outer-doors" id="outerDoors">
               <div class="leaf left" data-region="outerDoor" title="点击上传 · 外门"><img id="outerDoorImgL" src="assets/1/外门.webp" alt="外门左半" decoding="async"></div>
               <div class="leaf right" data-region="outerDoor" title="点击上传 · 外门"><img id="outerDoorImgR" src="assets/1/外门.webp" alt="外门右半" decoding="async"></div>
             </div>
           </div>
         </div>
+        <div class="click-zone inner-click-zone" data-region="innerDoor" title="点击上传 · 内门" aria-label="上传内门图片"></div>
+        <div class="click-zone outer-click-zone" data-region="outerDoor" title="点击上传 · 外门" aria-label="上传外门图片"></div>
       </div>
     </div>
 
@@ -326,8 +358,8 @@ img{-webkit-user-drag:none}
       </div>
       <div class="ctl">
         <span class="ctl-label">门开合</span>
-        <input class="slider" type="range" id="doorSlider" min="0" max="100" value="85">
-        <span class="mini" id="doorPct" style="min-width:44px">85% 开</span>
+        <input class="slider" type="range" id="doorSlider" min="0" max="100" value="0">
+        <span class="mini" id="doorPct" style="min-width:44px">0% 关</span>
       </div>
       <div class="ctl"><span class="ctl-label">外门跟随</span><div class="switch on" id="linkSwitch" onclick="this.classList.toggle('on')"><i></i></div></div>
       <div class="ctl"><span class="ctl-label">按钮面板</span><div class="switch on" id="btnSwitch" onclick="this.classList.toggle('on');document.getElementById('btnPanel').style.display=this.classList.contains('on')?'flex':'none'"><i></i></div></div>
@@ -335,6 +367,7 @@ img{-webkit-user-drag:none}
     </div>
     <div class="stage-foot">
       <span class="badge" id="stageTitle">SKIN 01 — 奔赴理想，也享受日常 · DAILY JOY</span>
+      <span class="mini" id="viewHint">站在轿厢内向外看 · 内门原图方向 · 拖转可看后墙</span>
       <span class="badge" id="skinBadge" style="background:var(--surface-container-high);color:var(--on-surface-variant)">SKIN 01</span>
       <span class="hint">⬢ 拖拽旋转 · 双指缩放 · 双击回正 · 点击任意面可直接换图</span>
     </div>
@@ -359,7 +392,7 @@ img{-webkit-user-drag:none}
           <p class="mini" id="uploadStatus">点 3D 电梯上的任意区域也能直接换图；自定义保存在本机，刷新不丢。</p>
         </div>
         <input type="file" id="fileInput" accept="image/*" style="display:none">
-        <p class="mini" style="margin-top:10px"><b>落位说明</b>：中=后墙 160×245；左/右=轿厢侧墙 150×245；内部左边/右边=门侧窄墙 35×245（按钮面板叠在左窄墙上）；内门/外门=轿/厅门 90×210 从中分缝，上传一张自动分到左右两扇；内上=门头横封。</p>
+        <p class="mini" style="margin-top:10px"><b>落位说明</b>：中=后墙 160×245；左/右=轿厢侧墙 150×245；窄墙左右以轿厢内向外看为准，按钮在灰色窄墙；内门/外门各上传一张完整图，左半放左扇、右半放右扇，不翻转、不混用；厅外墙固定灰色，不接收贴图；内上=门头横封。</p>
       </div>
     </section>
 
@@ -500,7 +533,8 @@ function pickRegion(k){ pendingRegion=k; fileInput.value=''; fileInput.click(); 
 fileInput.addEventListener('change',e=>{
   const f=e.target.files&&e.target.files[0]; if(!f||!pendingRegion) return;
   const url=URL.createObjectURL(f); const img=new Image();
-  img.onload=()=>{ try{ setCustom(pendingRegion,downscale(img)); }catch(err){ setStatus('⚠ 图片处理失败，换一张试试'); } URL.revokeObjectURL(url); };
+  const region=pendingRegion;
+  img.onload=()=>{ try{ setCustom(region,downscale(img)); }catch(err){ setStatus('⚠ 图片处理失败，换一张试试'); } URL.revokeObjectURL(url); };
   img.onerror=()=>{ setStatus('⚠ 图片读取失败'); URL.revokeObjectURL(url); };
   img.src=url;
 });
@@ -524,8 +558,10 @@ document.getElementById('viewSeg').addEventListener('click',e=>{
   const v=e.target.dataset.view;
   elevator.classList.remove('mode-exterior','mode-both');
   if(v==='exterior'){ elevator.classList.add('mode-exterior'); setDoors(0); }
-  else if(v==='both'){ elevator.classList.add('mode-exterior','mode-both'); setDoors(50); }
-  else { setDoors(85); }
+  else if(v==='both'){ elevator.classList.add('mode-exterior','mode-both'); setDoors(0); }
+  else { setDoors(0); }
+  document.getElementById('viewHint').textContent=v==='exterior'?'站在厅外看外门 · 周围墙体固定灰色':v==='both'?'内外观察面展开对照 · 两套门独立，不叠图':'站在轿厢内向外看 · 内门原图方向 · 拖转可看后墙';
+  resetView();
 });
 
 function setDoors(pct){
@@ -539,7 +575,7 @@ function setDoors(pct){
   innerL.style.transform=`translateX(-${v}%)`;
   innerR.style.transform=`translateX(${v}%)`;
   const link=document.getElementById('linkSwitch').classList.contains('on');
-  if(link){
+  if(link || (elevator.classList.contains('mode-exterior') && !elevator.classList.contains('mode-both'))){
     outerL.style.transform=`translateX(-${v}%)`;
     outerR.style.transform=`translateX(${v}%)`;
     if(pct>10) elevator.classList.add('mode-doors-open'); else elevator.classList.remove('mode-doors-open');
@@ -550,13 +586,24 @@ document.getElementById('doorSlider').addEventListener('input',e=> setDoors(pars
 
 /* ==== 拖拽旋转 / 缩放（rAF 节流 + 双指捏合） ==== */
 const scene=document.getElementById('scene');
-let rotY=-22, rotX=7, scale=1;
+let rotY=158, rotX=0, scale=1;
 let downX=0, downY=0, baseRotY=-22, baseRotX=7, dragging=false;
 const pts=new Map();
 let pinchDist=0, pinchScale=1;
 let rafQueued=false;
 
-function apply(){ elevator.style.transform=`rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`; }
+function syncClickZones(){
+  const sr=scene.getBoundingClientRect();
+  const pairs=[['.inner-click-zone','#innerDoors'],['.outer-click-zone','#outerDoors']];
+  for(const [zoneSel,targetSel] of pairs){
+    const zone=document.querySelector(zoneSel), target=document.querySelector(targetSel);
+    if(!zone||!target) continue;
+    const r=target.getBoundingClientRect();
+    zone.style.left=(r.left-sr.left)+'px'; zone.style.top=(r.top-sr.top)+'px';
+    zone.style.width=r.width+'px'; zone.style.height=r.height+'px';
+  }
+}
+function apply(){ elevator.style.transform=`rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`; elevator.classList.toggle('looking-out',Math.cos(rotY*Math.PI/180)<0); }
 function scheduleApply(){ if(rafQueued) return; rafQueued=true; requestAnimationFrame(()=>{ rafQueued=false; apply(); }); }
 function dist2(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
 
@@ -593,9 +640,18 @@ function endPointer(e){
   if(pts.size===0){
     dragging=false; elevator.classList.remove('dragging');
     if(wasDrag && Math.abs(e.clientX-downX)<6 && Math.abs(e.clientY-downY)<6){
-      const t=document.elementFromPoint(e.clientX,e.clientY);
-      const r=t&&t.closest?t.closest('[data-region]'):null;
-      if(r) pickRegion(r.dataset.region);
+      let region=null;
+      for(const zone of document.querySelectorAll('.click-zone')){
+        if(getComputedStyle(zone).display==='none') continue;
+        const b=zone.getBoundingClientRect();
+        if(e.clientX>=b.left&&e.clientX<=b.right&&e.clientY>=b.top&&e.clientY<=b.bottom){ region=zone.dataset.region; break; }
+      }
+      if(!region){
+        const t=document.elementFromPoint(e.clientX,e.clientY);
+        const r=t&&t.closest?t.closest('[data-region]'):null;
+        region=r&&r.dataset.region;
+      }
+      if(region) pickRegion(region);
     }
   }
 }
@@ -607,7 +663,14 @@ scene.addEventListener('wheel',e=>{
   scheduleApply();
 },{passive:false});
 scene.addEventListener('dblclick',resetView);
-function resetView(){ rotY=-22; rotX=7; scale=1; scheduleApply(); }
+function resetView(){
+  const v=document.querySelector('.seg.active')?.dataset.view||'interior';
+  rotY=v==='interior'?158:v==='both'?-6:-22; rotX=0;
+  const width=document.getElementById('scene').clientWidth;
+  const height=document.getElementById('scene').clientHeight;
+  scale=Math.min(1,(width-36)/(v==='both'?740:430),(height-(v==='both'?90:80))/(v==='both'?700:540));
+  scheduleApply();
+}
 
 /* 自动旋转：仅在开启时跑 rAF，避免常驻定时器 */
 let rotLoopId=0, lastRot=0;
@@ -623,7 +686,10 @@ function setAuto(v){
   if(v && !rotLoopId) rotLoopId=requestAnimationFrame(rotLoop);
   if(!v && rotLoopId){ cancelAnimationFrame(rotLoopId); rotLoopId=0; }
 }
-setDoors(85);
+setDoors(0); resetView();
+window.addEventListener('resize',()=>{ resetView(); requestAnimationFrame(syncClickZones); });
+new ResizeObserver(syncClickZones).observe(scene);
+requestAnimationFrame(syncClickZones);
 </script>
 </body>
 </html>
