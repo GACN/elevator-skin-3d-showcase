@@ -214,8 +214,13 @@ img{-webkit-user-drag:none}
 .saved-card-actions .mini-btn{padding:6px 10px}
 .saved-card-actions .delete{color:#A52216;border-color:#E7B8B0}
 .saved-empty{padding:14px 16px;border:1px dashed var(--outline);border-radius:14px;color:var(--on-surface-variant);font-size:12px;background:rgba(255,255,255,.45)}
+.cloud-panel{margin-top:14px;padding:14px 16px;border:1px solid var(--outline-variant);border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(255,243,236,.9));box-shadow:var(--elev1)}
+.cloud-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cloud-key{min-width:240px;flex:1;padding:10px 12px;border:1px solid var(--outline-variant);border-radius:10px;background:#fff;color:var(--on-surface);font:inherit;font-size:13px;outline:none}
+.cloud-key:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,.15)}
+.cloud-hint{margin-top:9px;color:var(--on-surface-variant);font-size:11px;line-height:1.5}
 
-/* ===== lower grid ===== */
+  /* ===== lower grid ===== */
 .lower{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
 .card{background:var(--surface);border:1px solid var(--outline-variant);border-radius:20px;box-shadow:var(--elev1);overflow:hidden}
 .card-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--outline-variant)}
@@ -409,6 +414,17 @@ img{-webkit-user-drag:none}
     <div class="saved-empty" id="savedEmpty">还没有保存方案。点击右上角“保存方案”，这里会出现可左右滑动的方案卡片。</div>
   </div>
 
+  <!-- ===== 云端方案 ===== -->
+  <div class="cloud-panel">
+    <div class="section-head"><h2>云端方案</h2><span id="cloudState">未连接</span></div>
+    <div class="cloud-row">
+      <input id="cloudKeyInput" class="cloud-key" type="password" autocomplete="off" placeholder="输入云端访问码">
+      <button class="m3-btn filled" onclick="connectCloud()">连接并同步</button>
+      <button class="m3-btn" onclick="pushCloud()">上传本机方案</button>
+    </div>
+    <div class="cloud-hint">连接一次后，保存、删除和载入方案都会从云端同步；同一个访问码可在其他设备使用。</div>
+  </div>
+
   <!-- ===== 自定义 + 详情 ===== -->
   <div class="lower">
     <section class="card">
@@ -461,6 +477,9 @@ const thumbGrid=document.getElementById('thumbGrid');
 const savedGrid=document.getElementById('savedGrid');
 const savedEmpty=document.getElementById('savedEmpty');
 const savedCount=document.getElementById('savedCount');
+const CLOUD_API='https://elevator-skin-cloud.gacgac321.workers.dev';
+const CLOUD_KEY_STORE='zmElevatorCloudKeyV1';
+let cloudKey=localStorage.getItem(CLOUD_KEY_STORE)||'';
 let savedDesigns=[];
 try{ savedDesigns=JSON.parse(localStorage.getItem('zmElevatorSavedDesignsV1')||'[]')||[]; }catch(e){ savedDesigns=[]; }
 
@@ -480,7 +499,7 @@ function formatSnapshotMeta(s){
 }
 function renderSavedDesigns(){
   savedDesigns=savedDesigns.filter(Boolean).slice(0,20);
-  savedCount.textContent=`${savedDesigns.length} 组 · 保存在本机，可载入或删除`;
+  savedCount.textContent=`${savedDesigns.length} 组 · ${cloudKey?'云端已连接':'保存在本机，可载入或删除'}`;
   savedEmpty.style.display=savedDesigns.length?'none':'block';
   savedGrid.innerHTML=savedDesigns.map((s,i)=>`
     <article class="saved-card">
@@ -563,11 +582,69 @@ function applyAll(){
   });
 }
 function setStatus(t){ const el=document.getElementById('uploadStatus'); if(el) el.textContent=t; }
+function setCloudState(t){ const el=document.getElementById('cloudState'); if(el) el.textContent=t; }
+function cloudHeaders(){ return {'Content-Type':'application/json','X-Cloud-Key':cloudKey}; }
+async function cloudFetch(method='GET',body){
+  const opts={method,headers:cloudHeaders()};
+  if(body!==undefined) opts.body=JSON.stringify(body);
+  const r=await fetch(`${CLOUD_API}/api/designs`,opts);
+  let data={}; try{ data=await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(data.error||`HTTP ${r.status}`);
+  return data;
+}
+function saveLocalDesigns(){ localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns)); }
+async function pushCloud(silent=false){
+  const input=document.getElementById('cloudKeyInput');
+  if(!cloudKey && input) cloudKey=input.value.trim();
+  if(!cloudKey){ if(!silent) setCloudState('请输入访问码'); return false; }
+  try{
+    await cloudFetch('PUT',{designs:savedDesigns});
+    localStorage.setItem(CLOUD_KEY_STORE,cloudKey);
+    setCloudState(`已连接 · ${savedDesigns.length}组已同步`);
+    renderSavedDesigns();
+    if(!silent) setStatus(`✓ 已上传云端：${savedDesigns.length}组方案`);
+    return true;
+  }catch(e){ setCloudState('连接失败'); if(!silent) setStatus(`⚠ 云端上传失败：${e.message}`); return false; }
+}
+async function pullCloud(){
+  if(!cloudKey) return false;
+  try{
+    const data=await cloudFetch('GET');
+    const remote=Array.isArray(data.designs)?data.designs:[];
+    if(remote.length){
+      savedDesigns=remote.slice(0,20);
+      saveLocalDesigns();
+      renderSavedDesigns();
+      setCloudState(`已连接 · ${savedDesigns.length}组云端方案`);
+      return true;
+    }
+    if(savedDesigns.length) return pushCloud(true);
+    setCloudState('已连接 · 暂无方案');
+    return true;
+  }catch(e){ setCloudState('访问码无效或连接失败'); return false; }
+}
+async function connectCloud(){
+  const input=document.getElementById('cloudKeyInput');
+  const key=(input?.value||'').trim();
+  if(!key){ setCloudState('请输入访问码'); setStatus('请输入云端访问码'); return; }
+  cloudKey=key;
+  const ok=await pullCloud();
+  if(ok){ localStorage.setItem(CLOUD_KEY_STORE,cloudKey); renderSavedDesigns(); setStatus('✓ 云端连接成功'); }
+  else { cloudKey=''; localStorage.removeItem(CLOUD_KEY_STORE); }
+}
+async function initCloud(){
+  const input=document.getElementById('cloudKeyInput');
+  if(cloudKey && input){ input.value='已保存访问码'; input.type='text'; input.disabled=true; }
+  if(cloudKey){
+    const ok=await pullCloud();
+    if(!ok){ cloudKey=''; localStorage.removeItem(CLOUD_KEY_STORE); if(input){ input.value=''; input.type='password'; input.disabled=false; } }
+  }
+}
 function saveCustoms(){
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(customs)); return true; }
   catch(e){ setStatus('⚠ 本机存储已满，这张图只在本次浏览生效'); return false; }
 }
-function saveSnapshot(){
+async function saveSnapshot(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
   const stamp=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
@@ -578,18 +655,20 @@ function saveSnapshot(){
     savedDesigns=[snapshot,...savedDesigns].slice(0,20);
     localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns));
     renderSavedDesigns();
-    setStatus(`✓ 已保存：${name}（本机方案记录）`);
+    setStatus(`✓ 已保存：${name}${cloudKey?'（已同步云端）':'（本机方案记录）'}`);
+    if(cloudKey) await pushCloud(true);
     document.getElementById('saveBtn').textContent='✓ 已保存';
     setTimeout(()=>{ document.getElementById('saveBtn').textContent='▣ 保存方案'; },1800);
   }catch(e){ setStatus('⚠ 方案保存失败：本机存储空间不足'); }
 }
-function deleteSnapshot(index){
+async function deleteSnapshot(index){
   if(!Number.isInteger(index)||!savedDesigns[index]) return;
   const name=savedDesigns[index].name||'该方案';
   savedDesigns.splice(index,1);
   try{ localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns)); }catch(e){}
   renderSavedDesigns();
   setStatus(`已删除：${name}`);
+  if(cloudKey) await pushCloud(true);
 }
 function loadSnapshot(index){
   const s=savedDesigns[index]; if(!s) return;
@@ -648,7 +727,7 @@ function downscale(img,max=1200,q=0.82){
   return webp.indexOf('data:image/webp')===0?webp:c.toDataURL('image/jpeg',q);
 }
 document.getElementById('clearAllBtn').onclick=()=>{ customPreview=true; customs={}; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已清除全部自定义，全部回到皮肤原图'); };
-buildCases(); buildThumbGrid('1'); renderRegions(); applyAll(); renderSavedDesigns();
+buildCases(); buildThumbGrid('1'); renderRegions(); applyAll(); renderSavedDesigns(); initCloud();
 
 /* ==== 视图切换 ==== */
 const elevator=document.getElementById('elevator');
