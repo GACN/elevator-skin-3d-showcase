@@ -524,7 +524,7 @@ function switchSkin(id,showCustom=false){
   customPreview=!!showCustom;
   const s=skins.find(x=>x.id===id);
   buildCases(); buildThumbGrid(id);
-  applyAll();
+  applyAll(); renderRegions();
   document.getElementById('specTitle').textContent=`${s.label} — ${s.en}`;
   document.getElementById('specDesc').textContent=s.desc;
   document.getElementById('skinBadge').textContent=s.label;
@@ -618,7 +618,7 @@ function clearCustom(k){ customPreview=true; delete customs[k]; saveCustoms(); a
 const regionPanel=document.getElementById('regionPanel');
 function renderRegions(){
   regionPanel.innerHTML=REGIONS.map(r=>{
-    const cu=customs[r.key];
+    const cu=customPreview?customs[r.key]:null;
     const thumb=cu||r.def(current);
     const thumbHtml=(r.key==='notice'&&!cu)?'<span style="font-size:17px">📄</span>':`<img src="${thumb}" alt="">`;
     return `<div class="region-row ${cu?'custom':''}">
