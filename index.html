@@ -515,12 +515,13 @@ function buildThumbGrid(id){
   const FILE_REGION={'中.webp':'back','左.webp':'left','右.webp':'right','内部左边.webp':'jambR','内部右边.webp':'jambL','内门.webp':'innerDoor','外门.webp':'outerDoor'};
   thumbGrid.innerHTML=files.map(o=>{
     const rk=FILE_REGION[o.f]||((o.f==='内上.webp'||o.f==='内部门上.webp')?'header':null);
-    const cu=rk?customs[rk]:null;
+    const cu=(customPreview&&rk)?customs[rk]:null;
     return `<div class="skin-thumb"><img src="${cu||`assets/${id}/${o.f}`}" loading="lazy" alt="${o.l}"><p>${o.l}${cu?'·自定':''}</p></div>`;
   }).join('');
 }
-function switchSkin(id){
+function switchSkin(id,showCustom=false){
   current=id;
+  customPreview=!!showCustom;
   const s=skins.find(x=>x.id===id);
   buildCases(); buildThumbGrid(id);
   applyAll();
@@ -528,12 +529,14 @@ function switchSkin(id){
   document.getElementById('specDesc').textContent=s.desc;
   document.getElementById('skinBadge').textContent=s.label;
   document.getElementById('stageTitle').textContent=`${s.label} — ${s.title} · ${s.en}`;
+  if(!showCustom) setStatus(`已切换：${s.label} 案例原图；自定义图片仍保存在本机，载入保存方案可恢复`);
 }
 
 /* ==== 自定义图片上传：每个区域都可换图，存本机 localStorage ==== */
 const STORE_KEY='zmElevatorCustomsV1';
 let customs={};
 try{ customs=JSON.parse(localStorage.getItem(STORE_KEY)||'{}')||{}; }catch(e){ customs={}; }
+let customPreview=true;
 const REGIONS=[
   {key:'back',   name:'后墙',     sub:'中 · 160×245cm',        ids:['backImg'],  def:id=>`assets/${id}/中.webp`},
   {key:'left',   name:'左侧墙',   sub:'左 · 150×245cm',        ids:['leftImg'],  def:id=>`assets/${id}/左.webp`},
@@ -547,11 +550,11 @@ const REGIONS=[
 ];
 function applyAll(){
   REGIONS.forEach(r=>{
-    const data=customs[r.key]||r.def(current);
+    const data=(customPreview&&customs[r.key])||r.def(current);
     r.ids.forEach(iid=>{
       const el=document.getElementById(iid); if(!el) return;
       if(iid==='noticeImgEl'){
-        const on=!!customs.notice;
+        const on=customPreview&&!!customs.notice;
         el.style.display=on?'block':'none';
         if(on) el.src=data;
         document.getElementById('noticeText').style.display=on?'none':'flex';
@@ -593,7 +596,7 @@ function loadSnapshot(index){
   current=s.skin||'1';
   customs=s.customs||{};
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(customs)); }catch(e){}
-  switchSkin(current); renderRegions();
+  switchSkin(current,true); renderRegions();
   document.getElementById('linkSwitch').classList.toggle('on',!!s.link);
   document.getElementById('btnSwitch').classList.toggle('on',s.buttons!==false);
   document.getElementById('noticeSwitch').classList.toggle('on',s.notice!==false);
@@ -610,8 +613,8 @@ function loadSnapshot(index){
   setStatus(`✓ 已载入：${s.name||'方案'}`);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function setCustom(k,data){ customs[k]=data; const ok=saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus(ok?'✓ 已保存到本机，刷新/换皮肤都不丢':'⚠ 存储已满，仅本次生效'); }
-function clearCustom(k){ delete customs[k]; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已恢复该区域的皮肤原图'); }
+function setCustom(k,data){ customPreview=true; customs[k]=data; const ok=saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus(ok?'✓ 已保存到本机，刷新/换皮肤都不丢':'⚠ 存储已满，仅本次生效'); }
+function clearCustom(k){ customPreview=true; delete customs[k]; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已恢复该区域的皮肤原图'); }
 const regionPanel=document.getElementById('regionPanel');
 function renderRegions(){
   regionPanel.innerHTML=REGIONS.map(r=>{
@@ -644,7 +647,7 @@ function downscale(img,max=1200,q=0.82){
   const webp=c.toDataURL('image/webp',q);
   return webp.indexOf('data:image/webp')===0?webp:c.toDataURL('image/jpeg',q);
 }
-document.getElementById('clearAllBtn').onclick=()=>{ customs={}; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已清除全部自定义，全部回到皮肤原图'); };
+document.getElementById('clearAllBtn').onclick=()=>{ customPreview=true; customs={}; saveCustoms(); applyAll(); renderRegions(); buildThumbGrid(current); setStatus('已清除全部自定义，全部回到皮肤原图'); };
 buildCases(); buildThumbGrid('1'); renderRegions(); applyAll(); renderSavedDesigns();
 
 /* ==== 视图切换 ==== */
