@@ -597,7 +597,15 @@ async function cloudFetch(method='GET',body){
   if(!r.ok) throw new Error(data.error||`HTTP ${r.status}`);
   return data;
 }
-function saveLocalDesigns(){ localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns)); }
+function saveLocalDesigns(){
+  try{
+    localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns));
+  }catch(e){
+    // Cloud designs may contain many base64 images and exceed localStorage quota.
+    // Keep the full set in memory so cloud pull/load still works in this session.
+    try{ localStorage.removeItem('zmElevatorSavedDesignsV1'); }catch(_e){}
+  }
+}
 async function pushCloud(silent=false){
   const input=document.getElementById('cloudKeyInput');
   if(!cloudKey && input) cloudKey=input.value.trim();
