@@ -481,6 +481,7 @@ const savedGrid=document.getElementById('savedGrid');
 const savedEmpty=document.getElementById('savedEmpty');
 const savedCount=document.getElementById('savedCount');
 const CLOUD_API='https://elevator-skin-cloud.gacgac321.workers.dev';
+const MAX_DESIGNS=200;
 const CLOUD_KEY_STORE='zmElevatorCloudKeyV1';
 let cloudKey=localStorage.getItem(CLOUD_KEY_STORE)||'';
 let savedDesigns=[];
@@ -501,7 +502,7 @@ function formatSnapshotMeta(s){
   return `${view} · ${when}`;
 }
 function renderSavedDesigns(){
-  savedDesigns=savedDesigns.filter(Boolean).slice(0,20);
+  savedDesigns=savedDesigns.filter(Boolean).slice(0,MAX_DESIGNS);
   savedCount.textContent=`${savedDesigns.length} 组 · ${cloudKey?'云端已连接':'保存在本机，可载入或删除'}`;
   savedEmpty.style.display=savedDesigns.length?'none':'block';
   savedGrid.innerHTML=savedDesigns.map((s,i)=>`
@@ -625,7 +626,7 @@ async function pullCloud(){
     const data=await cloudFetch('GET');
     const remote=Array.isArray(data.designs)?data.designs:[];
     if(remote.length){
-      savedDesigns=remote.slice(0,20);
+      savedDesigns=remote.slice(0,MAX_DESIGNS);
       saveLocalDesigns();
       renderSavedDesigns();
       setCloudState(`已连接 · ${savedDesigns.length}组云端方案`);
@@ -665,7 +666,7 @@ async function saveSnapshot(){
   const view=document.querySelector('.seg.active')?.dataset.view||'interior';
   const snapshot={name,createdAt:d.toISOString(),skin:current,customs,view,doorPct:Number(document.getElementById('doorSlider').value),link:document.getElementById('linkSwitch').classList.contains('on'),buttons:document.getElementById('btnSwitch').classList.contains('on'),notice:document.getElementById('noticeSwitch').classList.contains('on'),rotY,rotX,scale};
   try{
-    savedDesigns=[snapshot,...savedDesigns].slice(0,20);
+    savedDesigns=[snapshot,...savedDesigns].slice(0,MAX_DESIGNS);
     localStorage.setItem('zmElevatorSavedDesignsV1',JSON.stringify(savedDesigns));
     renderSavedDesigns();
     setStatus(`✓ 已保存：${name}${cloudKey?'（已同步云端）':'（本机方案记录）'}`);

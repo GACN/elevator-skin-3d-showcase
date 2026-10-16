@@ -38,6 +38,17 @@ async function authorized(request) {
 }
 
 async function readDesigns(env) {
+  try {
+    const rows = await env.DB.prepare(
+      'SELECT payload, updated_at FROM design_items WHERE workspace = ?1 ORDER BY rowid'
+    ).bind(WORKSPACE).all();
+    if (rows && Array.isArray(rows.results) && rows.results.length) {
+      const designs = rows.results.map(row => JSON.parse(row.payload));
+      return { designs, updatedAt: rows.results[rows.results.length - 1].updated_at };
+    }
+  } catch {
+    // First deployment or legacy database without design_items: fall back below.
+  }
   const row = await env.DB.prepare(
     'SELECT payload, updated_at FROM design_store WHERE workspace = ?1'
   ).bind(WORKSPACE).first();
@@ -76,18 +87,30 @@ export default {
       let body;
       try { body = await request.json(); } catch { return response({ error: 'invalid_json' }, 400, request); }
       const designs = body && body.designs;
-      if (!Array.isArray(designs) || designs.length > 20) {
+      if (!Array.isArray(designs) || designs.length > 200) {
         return response({ error: 'invalid_designs' }, 400, request);
       }
       const payload = JSON.stringify(designs);
-      if (payload.length > 9000000) {
+      if (payload.length > 30000000) {
         return response({ error: 'payload_too_large' }, 413, request);
       }
       const updatedAt = new Date().toISOString();
       await env.DB.prepare(
-        `INSERT INTO design_store (workspace, payload, updated_at) VALUES (?1, ?2, ?3)
-         ON CONFLICT(workspace) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at`
-      ).bind(WORKSPACE, payload, updatedAt).run();
+        `CREATE TABLE IF NOT EXISTS design_items (
+          workspace TEXT NOT NULL,
+          name TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          PRIMARY KEY (workspace, name)
+        )`
+      ).run();
+      const statements = [
+        env.DB.prepare('DELETE FROM design_items WHERE workspace = ?1').bind(WORKSPACE),
+        ...designs.map(design => env.DB.prepare(
+          'INSERT INTO design_items (workspace, name, payload, updated_at) VALUES (?1, ?2, ?3, ?4)'
+        ).bind(WORKSPACE, String(design.name || ''), JSON.stringify(design), updatedAt)),
+      ];
+      await env.DB.batch(statements);
       return response({ ok: true, count: designs.length, updatedAt }, 200, request);
     }
 
